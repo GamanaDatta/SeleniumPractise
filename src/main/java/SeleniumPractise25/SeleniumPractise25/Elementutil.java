@@ -1,18 +1,33 @@
 package SeleniumPractise25.SeleniumPractise25;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.NoSuchFrameException;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class Elementutil {
+	
 	private WebDriver driver;
+	private Actions act;
 
 	public Elementutil(WebDriver driver) {
 		this.driver = driver;
+		act = new Actions(driver);
 	}
 
 	public void doSendKeys(By locator, String value) {
@@ -149,5 +164,368 @@ public class Elementutil {
 			}
 		}
 	}
+	
+	// *******************Select drop down utils*************//
+
+		public void doSelectByIndex(By locator, int index) {
+			Select select = new Select(getElement(locator));
+			select.selectByIndex(index);
+		}
+
+		public void doSelectByVisibleText(By locator, String eleText) {
+			Select select = new Select(getElement(locator));
+			select.selectByVisibleText(eleText);
+		}
+
+		public void doSelectByValue(By locator, String value) {
+			Select select = new Select(getElement(locator));
+			select.selectByValue(value);
+		}
+
+		public int getDropDownOptionsCount(By locator) {
+			Select select = new Select(getElement(locator));
+			return select.getOptions().size();
+		}
+
+		public List<String> getDropDownValuesList(By locator) {
+			Select select = new Select(getElement(locator));
+			List<WebElement> optionsList = select.getOptions();
+			System.out.println("total number of options: " + optionsList.size());
+
+			List<String> optionsValueList = new ArrayList<String>();// pc=0, size=0, []
+			for (WebElement e : optionsList) {
+				String text = e.getText();
+				optionsValueList.add(text);
+			}
+
+			return optionsValueList;
+		}
+
+		public void selectDropDownValue(By locator, String value) {
+			List<WebElement> optionsList = getElements(locator);
+			System.out.println(optionsList.size());
+			for (WebElement e : optionsList) {
+				String text = e.getText();
+				if (text.contains(value)) {
+					e.click();
+					break;
+				}
+			}
+		}
+
+		public String getDropDownFirstSelectValue(By locator) {
+			Select select = new Select(getElement(locator));
+			return select.getFirstSelectedOption().getText();
+		}
+
+		// ****************Actions utils*****************//
+
+		private void moveToElement(By locator) {
+			act.moveToElement(getElement(locator)).perform();
+		}
+
+		public void menuSubMenuHandlingLevel2(By parentMenu, By childMenu) throws InterruptedException {
+			moveToElement(parentMenu);
+			Thread.sleep(2000);
+			clickbtn(childMenu);
+		}
+
+		public void menuSubMenuHandlingLevel3(By menuLevel1, By menuLevel2, By menuLevel3) throws InterruptedException {
+			clickbtn(menuLevel1);
+			Thread.sleep(1000);
+			moveToElement(menuLevel2);
+			Thread.sleep(1000);
+			clickbtn(menuLevel3);
+		}
+
+		public void menuSubMenuHandlingLevel4(By menuLevel1, By menuLevel2, By menuLevel3, By menuLevel4, String actionType)
+				throws InterruptedException {
+			if (actionType.equalsIgnoreCase("click")) {
+				clickbtn(menuLevel1);
+			} else if (actionType.equalsIgnoreCase("mousehover")) {
+				moveToElement(menuLevel1);
+			}
+			Thread.sleep(1000);
+			moveToElement(menuLevel2);
+			Thread.sleep(1000);
+			moveToElement(menuLevel3);
+			Thread.sleep(1000);
+			clickbtn(menuLevel4);
+		}
+
+		public void doActionsSendKeys(By locator, String value) {
+			act.sendKeys(getElement(locator), value).perform();
+		}
+
+		public void doActionsClick(By locator) {
+			act.click(getElement(locator)).perform();
+		}
+
+		public void doSendKeysWithPause(By locator, String value, long pauseTime) {
+
+			if (value == null) {
+				throw new RuntimeException("===value can not be null");
+			}
+
+			char val[] = value.toCharArray();
+			for (char ch : val) {
+				act.sendKeys(getElement(locator), String.valueOf(ch)).pause(pauseTime).perform();
+			}
+
+		}
+
+		public void doSendKeysWithPause(By locator, String value) {
+
+			if (value == null) {
+				throw new RuntimeException("===value can not be null");
+			}
+
+			char val[] = value.toCharArray();
+			for (char ch : val) {
+				act.sendKeys(getElement(locator), String.valueOf(ch)).pause(200).perform();
+			}
+
+		}
+
+		// *********************Wait util****************//
+
+		/**
+		 * An expectation for checking that an element is present on the DOM of a page.
+		 * This does not necessarily mean that the element is visible.
+		 * 
+		 * @param locator
+		 * @param timeout
+		 * @return
+		 */
+		public WebElement waitForElementPresence(By locator, int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+			return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+		}
+
+		/**
+		 * An expectation for checking that an element is present on the DOM of a page
+		 * and visible. Visibility means that the element is not only displayed but also
+		 * has a height and width that is greater than 0.
+		 * 
+		 * @param locator
+		 * @param timeout
+		 * @return
+		 */
+		public WebElement waitForElementVisible(By locator, int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+			return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+		}
+
+		/**
+		 * An expectation for checking that there is at least one element present on a
+		 * web page.
+		 * 
+		 * @param locator
+		 * @param timeout
+		 * @return
+		 */
+		public List<WebElement> waitForElementsPresence(By locator, int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+			return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator));
+
+		}
+
+		/**
+		 * An expectation for checking that all elements present on the web page that
+		 * match the locator are visible. Visibility means that the elements are not
+		 * only displayed but also have a height and width that is greater than 0.
+		 * 
+		 * @param locator
+		 * @param timeout
+		 * @return
+		 */
+		public List<WebElement> waitForElementsVisible(By locator, int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+			return wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
+		}
+
+		/**
+		 * An expectation for checking an element is visible and enabled such that you
+		 * can click it.
+		 * 
+		 * @param locator
+		 * @param timeout
+		 */
+		public void clickElementWhenReady(By locator, int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+			wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
+		}
+
+		public Alert waitForAlert(int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+			return wait.until(ExpectedConditions.alertIsPresent());
+		}
+
+		public String getAlertText(int timeout) {
+			return waitForAlert(timeout).getText();
+		}
+
+		public void acceptAlert(int timeout) {
+			waitForAlert(timeout).accept();
+		}
+
+		public void dismissAlert(int timeout) {
+			waitForAlert(timeout).dismiss();
+		}
+
+		public void sendKeysInAlert(int timeout, String value) {
+			waitForAlert(timeout).sendKeys(value);
+		}
+
+		public String waitForTitleContains(String fractionTitleValue, int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+
+			try {
+				wait.until(ExpectedConditions.titleContains(fractionTitleValue));
+			} catch (TimeoutException e) {
+				System.out.println("expected title value : " + fractionTitleValue + " is not present");
+			}
+
+			return driver.getTitle();
+		}
+
+		public String waitForTitleIs(String expectedTitleValue, int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+
+			try {
+				wait.until(ExpectedConditions.titleIs(expectedTitleValue));
+			} catch (TimeoutException e) {
+				System.out.println("expected title value : " + expectedTitleValue + " is not present");
+			}
+
+			return driver.getTitle();
+		}
+
+		public String waitForURLContains(String fractionURLValue, int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+
+			try {
+				wait.until(ExpectedConditions.urlContains(fractionURLValue));
+			} catch (TimeoutException e) {
+				System.out.println("expected URL value : " + fractionURLValue + " is not present");
+			}
+
+			return driver.getCurrentUrl();
+		}
+
+		public String waitForURLIs(String epxectedURLValue, int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+
+			try {
+				wait.until(ExpectedConditions.urlToBe(epxectedURLValue));
+			} catch (TimeoutException e) {
+				System.out.println("expected URL value : " + epxectedURLValue + " is not present");
+			}
+
+			return driver.getCurrentUrl();
+		}
+
+		public boolean waitForWindow(int expectedNoOfWindows, int timeout) {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+			try {
+				return wait.until(ExpectedConditions.numberOfWindowsToBe(expectedNoOfWindows));
+			} catch (TimeoutException e) {
+				System.out.println("expected number of windows are correct");
+				return false;
+			}
+		}
+
+		public boolean waitForFrame(By frameLocator, int timeout) {
+
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+
+			try {
+				wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameLocator));
+				return true;
+			} catch (TimeoutException e) {
+				System.out.println("frame is not present on the page");
+				return false;
+			}
+
+		}
+
+		public boolean waitForFrame(int frameIndex, int timeout) {
+
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+
+			try {
+				wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameIndex));
+				return true;
+			} catch (TimeoutException e) {
+				System.out.println("frame is not present on the page");
+				return false;
+			}
+
+		}
+
+		public boolean waitForFrame(String frameNameOrID, int timeout) {
+
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+
+			try {
+				wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameNameOrID));
+				return true;
+			} catch (TimeoutException e) {
+				System.out.println("frame is not present on the page");
+				return false;
+			}
+
+		}
+		
+		
+		//******************FluentWait Utils************//
+		
+		public WebElement waitForElementVisibleWithFluentWait(By locator, int timeout, int pollingtime) {
+			Wait<WebDriver> wait = new FluentWait<WebDriver>(driver)
+					.withTimeout(Duration.ofSeconds(timeout))
+					.pollingEvery(Duration.ofMillis(pollingtime))
+					.ignoring(NoSuchElementException.class)
+					.ignoring(StaleElementReferenceException.class)
+					.withMessage("=====ELEMENT NOT VISIBLE ON THE PAGE====");
+			
+			return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+		}
+		
+		
+		public WebElement waitForElementPresenceWithFluentWait(By locator, int timeout, int pollingtime) {
+			Wait<WebDriver> wait = new FluentWait<WebDriver>(driver)
+					.withTimeout(Duration.ofSeconds(timeout))
+					.pollingEvery(Duration.ofMillis(pollingtime))
+					.ignoring(NoSuchElementException.class)
+					.ignoring(StaleElementReferenceException.class)
+					.withMessage("=====ELEMENT NOT PRESENT ON THE PAGE====");
+			
+			return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+		}
+		
+		
+		
+		public void waitForFrameWithFluentWait(By frameLocator, int timeout, int pollingtime) {
+			Wait<WebDriver> wait = new FluentWait<WebDriver>(driver)
+					.withTimeout(Duration.ofSeconds(timeout))
+					.pollingEvery(Duration.ofMillis(pollingtime))
+					.ignoring(NoSuchFrameException.class)
+					.withMessage("=====FRAME NOT VISIBLE ON THE PAGE====");
+			
+			 wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameLocator));
+		}
+		
+		
+		public Alert waitForAlertWithFluentWait(int timeout, int pollingtime) {
+			Wait<WebDriver> wait = new FluentWait<WebDriver>(driver)
+					.withTimeout(Duration.ofSeconds(timeout))
+					.pollingEvery(Duration.ofMillis(pollingtime))
+					.ignoring(NoAlertPresentException.class)
+					.withMessage("=====Alert NOT VISIBLE ON THE PAGE====");
+			
+			return wait.until(ExpectedConditions.alertIsPresent());
+		}
+	
+	
 
 }
