@@ -1,0 +1,23 @@
+package SeleniumPractise25.SeleniumPractise25;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+public class AuthPopupHandle {
+
+	
+	public static void main(String[] args) {
+		WebDriver driver = new ChromeDriver();
+		
+		String username = "admin";
+		String password = "admin";
+		
+		
+		driver.get("https://"+username+":"+password+"@"+"the-internet.herokuapp.com/basic_auth");
+		
+		
+		//selenium 4.x: HasAuthenticate: later
+		
+
+	}
+
+}
